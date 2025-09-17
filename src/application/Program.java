@@ -1,17 +1,22 @@
 package application;
 
 import entities.Product;
+import service.ProductService;
 
 public class Program {
 
 	public static void main(String[] args) {
 		
-		Product parafuso = new Product(0.50,"Parafuso Sextavado", "Aço carbono 10mm");
+		ProductService produtoService = new ProductService();
 		
-		Product porca = new Product(0.75,"Porca Autotravante", "Aço inox 10mm");
-
-		System.out.println(parafuso);
-		System.out.println(porca);
+		produtoService.AdicionarProduto(new Product(0.50,"Parafuso Sextavado", "Aço carbono 10mm"));
+		
+		produtoService.AdicionarProduto(new Product(0.75,"Porca Autotravante", "Aço inox 10mm"));
+		
+		produtoService.AdicionarProduto(new Product(1.60,"Fita de nylon 300MM","Fita nylon pvc 9nn"));
+		
+		produtoService.listarTodosProdutos();
+		
 	}
 
 }
