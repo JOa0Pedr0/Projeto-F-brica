@@ -9,7 +9,7 @@ public class ProductService {
 	
 	private List<Product> estoque = new ArrayList();
 	
-	public void AdicionarProduto(Product produto) {
+	public void adicionarProduto(Product produto) {
 		
 		if(produto != null) {
 			estoque.add(produto);

@@ -7,17 +7,19 @@ public class Product {
 	private String nome;
 	private String descricao;
 	private static int proximoId = 1;
+	private Machine maquina;
 
 	public Product() {
 
 	}
 
-	public Product(double precoCusto, String nome, String descricao) {
+	public Product(double precoCusto, String nome, String descricao, Machine maquina) {
 
 		this.precoCusto = precoCusto;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.id = proximoId++;
+		this.maquina = maquina;
 	}
 
 	public int getId() {
@@ -40,6 +42,10 @@ public class Product {
 		this.nome = nome;
 	}
 	
+	public Machine getMaquina() {
+		return maquina;
+	}
+	
 	public String getDescricao() {
 		return descricao;
 	}
@@ -49,7 +55,7 @@ public class Product {
 
 	@Override
 	public String toString() {
-		return "Product [id=" + id + ", precoCusto=" + precoCusto + ", nome=" + nome + ", descricao=" + descricao + "]";
+		return "Product [id=" + id + ", precoCusto=" + precoCusto + ", nome=" + nome + ", descricao=" + descricao + ", maquina=" + maquina +"]";
 	}
 	
 	

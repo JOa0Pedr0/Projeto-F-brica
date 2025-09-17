@@ -3,7 +3,9 @@ package application;
 import java.util.Locale;
 import java.util.Scanner;
 
+import entities.Machine;
 import entities.Product;
+import service.MachineService;
 import service.ProductService;
 
 public class Program {
@@ -13,6 +15,7 @@ public class Program {
 		Locale.setDefault(Locale.US);
 
 		ProductService produtoService = new ProductService();
+		MachineService machineService = new MachineService();
 
 		Scanner sc = new Scanner(System.in);
 		int op = -1;
@@ -21,15 +24,30 @@ public class Program {
 			System.out.println("[1] - Adicionar produto");
 			System.out.println("[2] - Listar todos oprodutos");
 			System.out.println("[3] - Buscar produto");
+			System.out.println("[4] - Adicionar máquina");
+			System.out.println("[5] - Listar todas máquinas");
 			System.out.println("[0] - Sair");
 
 			System.out.println("Digite a opção:");
 			op = sc.nextInt();
 			switch (op) {
 			case 1:
+
+				machineService.listarTodasMaquinas();
+				if(machineService.isEmpty()) {
+					System.out.println("ERRO: Nenhuma máquina cadastrada. Adicione uma máquina primeiro.");
+					break;
+				}
 				
-				System.out.println("Informe o nome do produto:");
+				System.out.print("Informe o código da máquina associada ao produto:");
+				int codigoMaquina = sc.nextInt();
+				Machine maquina = machineService.buscarPorId(codigoMaquina);
 				sc.nextLine();
+				if (maquina == null) {
+					System.out.println("Código inválido para cadastro de máquina.");
+					break;
+				}
+				System.out.println("Informe o nome do produto:");
 				String nome = sc.nextLine();
 
 				System.out.println("Informe valor de custo do produto:");
@@ -39,7 +57,8 @@ public class Program {
 				sc.nextLine();
 				String descricao = sc.nextLine();
 
-				produtoService.AdicionarProduto(new Product(precoCusto, nome, descricao));
+				produtoService.adicionarProduto(new Product(precoCusto, nome, descricao, maquina));
+
 				break;
 
 			case 2:
@@ -51,11 +70,23 @@ public class Program {
 				System.out.println("Informe o código do produto:");
 				int codigoProduto = sc.nextInt();
 				Product produtoBuscado = produtoService.buscarPorId(codigoProduto);
-				if(produtoBuscado == null) {
+				if (produtoBuscado == null) {
 					System.out.println("Produto não encontrado.");
-				}else {
+				} else {
 					System.out.println(produtoBuscado);
 				}
+				break;
+			case 4:
+				sc.nextLine();
+				System.out.println("Informe o modelo da máquina:");
+				String modelo = sc.nextLine();
+				System.out.println("Status da máquina:");
+				String status = sc.nextLine();
+
+				machineService.adicionarMaquina(new Machine(modelo, status));
+				break;
+			case 5:
+				machineService.listarTodasMaquinas();
 				break;
 
 			case 0:
