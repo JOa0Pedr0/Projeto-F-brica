@@ -13,7 +13,7 @@ public class ProductService {
 		
 		if(produto != null) {
 			estoque.add(produto);
-			System.out.println("Produto " + produto.getNome() + "adicionado no estoque.");
+			System.out.println("Produto " + produto.getNome() + " adicionado no estoque.");
 		}
 	}
 	
