@@ -4,14 +4,14 @@ public class Machine {
 	
 	private int id;
 	private String modelo;
-	private String status;
+	private StatusMachine status;
 	private static int proximoId = 1;
 	
 	public Machine() {
-		
+		this.id = proximoId++;
 	}
 	
-	public Machine(String modelo, String status) {
+	public Machine(String modelo, StatusMachine status) {
 		this.modelo = modelo;
 		this.status = status;
 		this.id = proximoId++;
@@ -29,10 +29,10 @@ public class Machine {
 		this.modelo = modelo;
 	}
 	
-	public String getStatus(){
+	public StatusMachine getStatus(){
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(StatusMachine status) {
 		this.status = status;
 	}
 
@@ -40,6 +40,8 @@ public class Machine {
 	public String toString() {
 		return "Machine [id=" + id + ", modelo=" + modelo + ", status=" + status + "]";
 	}
+
+	
 	
 	
 	

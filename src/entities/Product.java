@@ -10,7 +10,7 @@ public class Product {
 	private Machine maquina;
 
 	public Product() {
-
+		this.id = proximoId++;
 	}
 
 	public Product(double precoCusto, String nome, String descricao, Machine maquina) {

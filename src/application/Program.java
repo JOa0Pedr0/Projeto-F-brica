@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 import entities.Machine;
 import entities.Product;
+import entities.StatusMachine;
 import service.MachineService;
 import service.ProductService;
 
@@ -34,16 +35,16 @@ public class Program {
 			case 1:
 
 				machineService.listarTodasMaquinas();
-				if(machineService.isEmpty()) {
+				if (machineService.isEmpty()) {
 					System.out.println("ERRO: Nenhuma máquina cadastrada. Adicione uma máquina primeiro.");
 					break;
 				}
-				
+
 				System.out.print("Informe o código da máquina associada ao produto:");
 				int codigoMaquina = sc.nextInt();
-				Machine maquina = machineService.buscarPorId(codigoMaquina);
+				Machine machine = machineService.buscarPorId(codigoMaquina);
 				sc.nextLine();
-				if (maquina == null) {
+				if (machine == null) {
 					System.out.println("Código inválido para cadastro de máquina.");
 					break;
 				}
@@ -57,7 +58,7 @@ public class Program {
 				sc.nextLine();
 				String descricao = sc.nextLine();
 
-				produtoService.adicionarProduto(new Product(precoCusto, nome, descricao, maquina));
+				produtoService.adicionarProduto(new Product(precoCusto, nome, descricao, machine));
 
 				break;
 
@@ -80,11 +81,33 @@ public class Program {
 				sc.nextLine();
 				System.out.println("Informe o modelo da máquina:");
 				String modelo = sc.nextLine();
+				Machine maquina = new Machine();
+				maquina.setModelo(modelo);
 				System.out.println("Status da máquina:");
-				String status = sc.nextLine();
-
-				machineService.adicionarMaquina(new Machine(modelo, status));
+				System.out.println("[1] - OPERANDO");
+				System.out.println("[2] - PARADA");
+				System.out.println("[3] - EM_MANUTENCAO");
+				int statusInt = sc.nextInt();
+				switch (statusInt) {
+				case 1:
+					maquina.setStatus(StatusMachine.OPERANDO); 
+					break;
+				case 2:
+					maquina.setStatus(StatusMachine.PARADA); 
+					break;
+				case 3:
+					maquina.setStatus(StatusMachine.EM_MANUTENCAO); 
+					break;
+				default:
+					System.out.println("Opção inválida!");
+					break;
+				}
+				if(maquina.getStatus() == null) {
+					break;
+				}
+					machineService.adicionarMaquina(maquina);
 				break;
+			
 			case 5:
 				machineService.listarTodasMaquinas();
 				break;
