@@ -4,7 +4,7 @@ public abstract class Employee {
 	private int id;
 	private String nome;
 	private String matricula;
-	private static int proximoId;
+	private static int proximoId = 1;
 
 	public Employee() {
 		id = proximoId++;

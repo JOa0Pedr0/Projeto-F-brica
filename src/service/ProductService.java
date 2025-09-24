@@ -4,36 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entities.Product;
+import service.exceptions.ResourceNotFoundException;
 
 public class ProductService {
-	
-	private List<Product> estoque = new ArrayList();
-	
+
+	private List<Product> produtos = new ArrayList();
+
 	public void adicionarProduto(Product produto) {
-		
-		if(produto != null) {
-			estoque.add(produto);
-			System.out.println("Produto " + produto.getNome() + " adicionado no estoque.");
+
+		if (produto == null) {
+			throw new IllegalArgumentException("Não é possível cadastrar um produto nulo.");
 		}
+		produtos.add(produto);
+		System.out.println("Produto " + produto.getNome() + " adicionado no estoque.");
 	}
-	
-	public void listarTodosProdutos() {
-		if(estoque.isEmpty()) {
-			System.out.println("Ainda não há produto no estoque.");
-		}
-		System.out.println("Lista de produtos:");
-		
-		for(Product produto : estoque) {
-			System.out.println(produto);
-		}
+
+	public List<Product> listarTodosProdutos() {
+		return produtos;
 	}
-	
+
 	public Product buscarPorId(int id) {
-		for(Product produto : estoque) {
-			if(produto.getId() == id) {
+		for (Product produto : produtos) {
+			if (produto.getId() == id) {
 				return produto;
 			}
 		}
-		return null;
+		throw new ResourceNotFoundException("Produto não encontrado. Id: " + id);
 	}
 }

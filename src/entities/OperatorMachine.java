@@ -20,11 +20,5 @@ public class OperatorMachine extends Employee {
 	@Override
 	public String toString() {
 		return super.toString() + ", OperatorMachine [maquinaAlocada=" + maquinaAlocada + "]";
-	}
-	
-	
-	
-	
-	
-	
+	}	
 }
