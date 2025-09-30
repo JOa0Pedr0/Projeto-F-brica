@@ -2,13 +2,16 @@ package service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import entities.Product;
+import interfaces.Reportable;
 import service.exceptions.ResourceNotFoundException;
 
-public class ProductService {
+public class ProductService implements Reportable {
 
 	private List<Product> produtos = new ArrayList();
+	
 
 	public void adicionarProduto(Product produto) {
 
@@ -30,5 +33,11 @@ public class ProductService {
 			}
 		}
 		throw new ResourceNotFoundException("Produto não encontrado. Id: " + id);
+	}
+	
+	@Override
+	public String gerarRelatorio() {
+		return "Quantidade de produtos no estoque: " + listarTodosProdutos().size() + 
+				"\nValor do estoque: R$ " + listarTodosProdutos().stream().mapToDouble(Product::getPrecoCusto).sum();
 	}
 }
