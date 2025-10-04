@@ -25,7 +25,7 @@ public class EmployeeMenu {
 	public void menu() {
 
 		sc = new Scanner(System.in);
-		System.out.println("\n\nMENU DE FUNCIONÁRIOS");
+		System.out.println("\n\nMENU DE FUCIONÁRIOS");
 		System.out.println("[1] - Registrar funcionário");
 		System.out.println("[2] - Listar funcionários");
 		System.out.println("[3] - Buscar funcionário");

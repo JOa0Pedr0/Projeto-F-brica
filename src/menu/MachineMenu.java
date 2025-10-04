@@ -16,7 +16,7 @@ public class MachineMenu {
 	}
 
 	public void menu() {
-		sc = new Scanner(System.in);
+		
 		
 		System.out.println("\n\nMENU DE MÁQUINAS");
 		System.out.println("[1] - Adicionar máquina");
