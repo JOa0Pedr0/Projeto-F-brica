@@ -1,5 +1,10 @@
 package entities;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("GERENTE")
 public class Manager extends Employee {
 	private String areaResponsavel;
 	

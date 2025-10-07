@@ -63,7 +63,10 @@ public class EmployeeService implements Reportable {
 					case OPERANDO:
 						operadoresAtivos++;
 						break;
-					case EM_MANUTENCAO, PARADA:
+					case EM_MANUTENCAO:
+						operadoresInativos++;
+						break;
+					case PARADA:
 						operadoresInativos++;
 						break;
 					}

@@ -1,16 +1,35 @@
 package entities;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "produtos")
 public class Product {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+	
 	private double precoCusto;
+	
 	private String nome;
+	
 	private String descricao;
-	private static int proximoId = 1;
+	
+	@ManyToOne
+	@JoinColumn(name = "maquina_id")
 	private Machine maquina;
 
+	
+	
 	public Product() {
-		this.id = proximoId++;
+		
 	}
 
 	public Product(double precoCusto, String nome, String descricao, Machine maquina) {
@@ -18,7 +37,6 @@ public class Product {
 		this.precoCusto = precoCusto;
 		this.nome = nome;
 		this.descricao = descricao;
-		this.id = proximoId++;
 		this.maquina = maquina;
 	}
 
