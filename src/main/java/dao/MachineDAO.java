@@ -10,6 +10,9 @@ public class MachineDAO {
 
 	public void cadastrar(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
+		if(maquina == null) {
+			throw new IllegalArgumentException("Máquina não pode ser nulo.");
+		}
 		try {
 			em.getTransaction().begin();
 			em.persist(maquina);
@@ -40,6 +43,9 @@ public class MachineDAO {
 
 	public void atualizar(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
+		if(maquina == null) {
+			throw new IllegalArgumentException("Máquina não pode ser nulo.");
+		}
 		try {
 			em.getTransaction().begin();
 			em.merge(maquina);
@@ -51,6 +57,9 @@ public class MachineDAO {
 	
 	public void remover(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
+		if(maquina == null) {
+			throw new IllegalArgumentException("Máquina não pode ser nulo.");
+		}
 		
 		try {
 			em.getTransaction().begin();
