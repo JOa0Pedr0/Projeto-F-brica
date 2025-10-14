@@ -1,43 +1,79 @@
 package service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import dao.MachineDAO;
+import dao.ProductDAO;
+import entities.Machine;
 import entities.Product;
 import interfaces.Reportable;
+import service.exceptions.BusinessRuleException;
 import service.exceptions.ResourceNotFoundException;
 
 public class ProductService implements Reportable {
 
-	private List<Product> produtos = new ArrayList();
-	
+	private ProductDAO productDAO = new ProductDAO();
+	private MachineDAO machineDAO = new MachineDAO();
 
-	public void adicionarProduto(Product produto) {
+	public void adicionarProduto(String nome, String descricao, double preco, int maquinaId) {
 
-		if (produto == null) {
-			throw new IllegalArgumentException("Não é possível cadastrar um produto nulo.");
+		Machine maquina = machineDAO.buscarPorId(maquinaId);
+
+		if (preco <= 0) {
+			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
 		}
-		produtos.add(produto);
-		System.out.println("Produto " + produto.getNome() + " adicionado no estoque.");
+
+		Product produto = new Product(preco, nome, descricao, maquina);
+
+		productDAO.cadastrar(produto);
+
 	}
 
 	public List<Product> listarTodosProdutos() {
-		return produtos;
+		return productDAO.listarTodas();
 	}
 
 	public Product buscarPorId(int id) {
-		for (Product produto : produtos) {
-			if (produto.getId() == id) {
-				return produto;
-			}
-		}
-		throw new ResourceNotFoundException("Produto não encontrado. Id: " + id);
+		return productDAO.buscarPorId(id);
 	}
-	
+
+	public void atualizar(int produtoId, String nome, String descricao, double preco, int maquinaId) {
+
+		Product produtoAtualizar = productDAO.buscarPorId(produtoId);
+
+		Machine maquinaAttProduto = machineDAO.buscarPorId(maquinaId);
+
+		if (preco <= 0) {
+			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
+		}
+
+		produtoAtualizar.setNome(nome);
+		produtoAtualizar.setDescricao(descricao);
+		produtoAtualizar.setPrecoCusto(preco);
+		produtoAtualizar.setMaquina(maquinaAttProduto);
+
+		productDAO.atualizar(produtoAtualizar);
+
+	}
+
+	public void remover(int id) {
+		Product produtoRemover = productDAO.buscarPorId(id);
+		
+		productDAO.remover(produtoRemover);
+	}
+
 	@Override
 	public String gerarRelatorio() {
-		return "Quantidade de produtos no estoque: " + listarTodosProdutos().size() + 
-				"\nValor do estoque: R$ " + listarTodosProdutos().stream().mapToDouble(Product::getPrecoCusto).sum();
+
+		List<Product> produtosEmEstoque = productDAO.listarTodas();
+
+		if (produtosEmEstoque.isEmpty()) {
+			return "Estoque vazio. Nenhum relatório a ser gerado.";
+		}
+
+		double valorTotalEmEstoque = produtosEmEstoque.stream().mapToDouble(Product::getPrecoCusto).sum();
+
+		return "Quantidade de produtos no estoque: " + produtosEmEstoque.size() + "\nValor do estoque: R$ "
+				+ valorTotalEmEstoque;
 	}
 }

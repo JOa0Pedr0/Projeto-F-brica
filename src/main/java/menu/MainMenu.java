@@ -30,7 +30,7 @@ public class MainMenu {
 			System.out.println("[1] - Menu Produto ");
 			System.out.println("[2] - Menu Funcionário");
 			System.out.println("[3] - Menu Máquina");
-			System.out.println("[4] - Menu Ordem de Produto");
+			System.out.println("[4] - Menu Ordem de Produção");
 			System.out.println("[0] - Encerrar Programa\n");
 
 			System.out.print("Digite a opção desejada: ");
@@ -73,9 +73,14 @@ public class MainMenu {
 				System.out.println("Entrada inválida, por favor digite uma opção númerica válida.");
 				sc.nextLine();
 
+			} catch (jakarta.persistence.RollbackException e) {
+				System.out.println("\nERRO DE INTEGRIDADE: A operação não pôde ser concluída.");
+				System.out.println(
+						"Motivo: Este registro (ex: Máquina, Funcionário...) está sendo usado por outra parte do sistema (ex: um Produto ou uma Ordem de Produção) e não pode ser removido.");
 			} catch (ResourceNotFoundException e) {
 				System.out.println(e.getMessage());
 				sc.nextLine();
+
 			} catch (BusinessRuleException e) {
 				System.out.println(e.getMessage());
 				sc.nextLine();

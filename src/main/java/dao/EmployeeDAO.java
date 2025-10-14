@@ -4,6 +4,7 @@ import java.util.List;
 
 import entities.Employee;
 import jakarta.persistence.EntityManager;
+import service.exceptions.ResourceNotFoundException;
 import util.JPAUtil;
 
 public class EmployeeDAO {
@@ -28,7 +29,14 @@ public class EmployeeDAO {
 		EntityManager em = JPAUtil.getEntityManager();
 
 		try {
-			return em.find(Employee.class, id);
+			Employee funcionario = em.find(Employee.class, id);
+
+			if (funcionario == null) {
+				throw new ResourceNotFoundException("Funcionário não encontrado ID: " + id);
+			}
+
+			return funcionario;
+			
 		} finally {
 			em.close();
 		}

@@ -5,6 +5,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,27 +20,30 @@ public class ProductionOrder {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-	@ManyToOne
+
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "produto_id")
 	private Product produtoASerProduzido;
-	
+
 	private int quantidade;
-	
-	@ManyToOne
+
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "maquina_id")
 	private Machine maquinaDesignada;
-	
-	@ManyToOne
+
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "operador_id")
 	private OperatorMachine operadorResponsavel;
 	private LocalDateTime dataDeCriacao;
-	
-	
-	private static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm").withZone(ZoneId.systemDefault());
-	
+
+	@Enumerated(EnumType.STRING)
+	private OrderStatus status;
+
+	private static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm")
+			.withZone(ZoneId.systemDefault());
+
 	public ProductionOrder() {
-		
+
 	}
 
 	public ProductionOrder(Product produtoASerProduzido, int quantidade, Machine maquinaDesignada,
@@ -48,25 +53,39 @@ public class ProductionOrder {
 		this.quantidade = quantidade;
 		this.maquinaDesignada = maquinaDesignada;
 		this.operadorResponsavel = operadorResponsavel;
-		this.dataDeCriacao =  LocalDateTime.now();
+		this.dataDeCriacao = LocalDateTime.now();
+		this.status = OrderStatus.PENDENTE;
 
 	}
-	
+
 	public int getId() {
 		return id;
 	}
+
 	public Product getProdutoASerProduzido() {
 		return produtoASerProduzido;
 	}
+
+	public OrderStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(OrderStatus status) {
+		this.status = status;
+	}
+
 	public int getQuantidade() {
 		return quantidade;
 	}
+
 	public Machine getMaquinaDesignada() {
 		return maquinaDesignada;
 	}
+
 	public OperatorMachine getOperadorResponsavel() {
 		return operadorResponsavel;
 	}
+
 	public LocalDateTime getDataDaCriacao() {
 		return dataDeCriacao;
 	}
@@ -74,10 +93,11 @@ public class ProductionOrder {
 	@Override
 	public String toString() {
 		String dataFormatada = (dataDeCriacao != null) ? (fmt.format(dataDeCriacao)) : "N/A";
-		
-		return "ProductionOrder [id=" + id + ", produtoASerProduzido=" + produtoASerProduzido.getNome() + ", quantidade="
-				+ quantidade + ", maquinaDesignada=" + maquinaDesignada.getModelo() + ", operadorResponsavel=" + operadorResponsavel.getNome()
-				+ ", dataDeCriacao=" + dataFormatada + "]";
+
+		return "ProductionOrder [id=" + id + ", produtoASerProduzido=" + produtoASerProduzido.getNome()
+				+ ", quantidade=" + quantidade + ", maquinaDesignada=" + maquinaDesignada.getModelo()
+				+ ", operadorResponsavel=" + operadorResponsavel.getNome() + ", dataDeCriacao=" + dataFormatada
+				+ ", Status=" + getStatus() + "]"; 
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import entities.ProductionOrder;
 import jakarta.persistence.EntityManager;
+import service.exceptions.BusinessRuleException;
 import util.JPAUtil;
 
 public class ProductionOrderDAO {
@@ -26,9 +27,16 @@ public class ProductionOrderDAO {
 
 	public ProductionOrder buscarPorId(int id) {
 		EntityManager em = JPAUtil.getEntityManager();
-
+	
 		try {
-			return em.find(ProductionOrder.class, id);
+			ProductionOrder productionOrder =  em.find(ProductionOrder.class, id);
+			
+			if(productionOrder == null) {
+				
+				throw new BusinessRuleException("Ordem de produção não encontrada ID: " + id);
+			}
+			
+			return productionOrder;
 		} finally {
 			em.close();
 		}

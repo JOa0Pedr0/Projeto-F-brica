@@ -45,9 +45,6 @@ public abstract class Employee {
 		return matricula;
 	}
 
-	public void setMatricula(String matricula) {
-		this.matricula = matricula;
-	}
 	public int getId() {
 		return id;
 	}

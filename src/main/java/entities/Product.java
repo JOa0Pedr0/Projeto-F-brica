@@ -22,7 +22,7 @@ public class Product {
 	
 	private String descricao;
 	
-	@ManyToOne
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "maquina_id")
 	private Machine maquina;
 
@@ -64,10 +64,14 @@ public class Product {
 		return maquina;
 	}
 	
+	public void setMaquina(Machine maquina) {
+		this.maquina = maquina;
+	}
+	
 	public String getDescricao() {
 		return descricao;
 	}
-	public void setDecricao(String descricao) {
+	public void setDescricao(String descricao) {
 		this.descricao = descricao;
 	}
 

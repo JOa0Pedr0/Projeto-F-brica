@@ -4,13 +4,14 @@ import java.util.List;
 
 import entities.Machine;
 import jakarta.persistence.EntityManager;
+import service.exceptions.ResourceNotFoundException;
 import util.JPAUtil;
 
 public class MachineDAO {
 
 	public void cadastrar(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
-		if(maquina == null) {
+		if (maquina == null) {
 			throw new IllegalArgumentException("Máquina não pode ser nulo.");
 		}
 		try {
@@ -25,7 +26,12 @@ public class MachineDAO {
 	public Machine buscarPorId(int id) {
 		EntityManager em = JPAUtil.getEntityManager();
 		try {
-			return em.find(Machine.class, id);
+			Machine maquina = em.find(Machine.class, id);
+
+			if (maquina == null) {
+				throw new ResourceNotFoundException("Máquina não encontrada para o ID " + id);
+			}
+			return maquina;
 		} finally {
 			em.close();
 		}
@@ -43,7 +49,7 @@ public class MachineDAO {
 
 	public void atualizar(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
-		if(maquina == null) {
+		if (maquina == null) {
 			throw new IllegalArgumentException("Máquina não pode ser nulo.");
 		}
 		try {
@@ -54,18 +60,18 @@ public class MachineDAO {
 			em.close();
 		}
 	}
-	
+
 	public void remover(Machine maquina) {
 		EntityManager em = JPAUtil.getEntityManager();
-		if(maquina == null) {
+		if (maquina == null) {
 			throw new IllegalArgumentException("Máquina não pode ser nulo.");
 		}
-		
+
 		try {
 			em.getTransaction().begin();
 			em.remove(em.merge(maquina));
 			em.getTransaction().commit();
-		}finally {
+		} finally {
 			em.close();
 		}
 	}
