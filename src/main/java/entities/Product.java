@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.Objects;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -78,6 +80,23 @@ public class Product {
 	@Override
 	public String toString() {
 		return "Product [id=" + id + ", precoCusto=" + precoCusto + ", nome=" + nome + ", descricao=" + descricao + ", maquina=" + maquina +"]";
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, nome);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Product other = (Product) obj;
+		return id == other.id && Objects.equals(nome, other.nome);
 	}
 	
 	

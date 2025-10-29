@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.Objects;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,14 +13,13 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "maquinas")
 public class Machine {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-	
+
 	private String modelo;
-	
+
 	@Enumerated(EnumType.STRING)
 	private StatusMachine status;
 
@@ -57,4 +58,20 @@ public class Machine {
 		return "Machine [id=" + id + ", modelo=" + modelo + ", status=" + status + "]";
 	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, modelo);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Machine other = (Machine) obj;
+		return id == other.id && Objects.equals(modelo, other.modelo);
+	}
 }

@@ -4,16 +4,17 @@ import java.util.List;
 
 import dao.MachineDAO;
 import dao.ProductDAO;
+import dao.ProductionOrderDAO;
 import entities.Machine;
 import entities.Product;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
-import service.exceptions.ResourceNotFoundException;
 
 public class ProductService implements Reportable {
 
 	private ProductDAO productDAO = new ProductDAO();
 	private MachineDAO machineDAO = new MachineDAO();
+	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
 
 	public void adicionarProduto(String nome, String descricao, double preco, int maquinaId) {
 
@@ -59,6 +60,11 @@ public class ProductService implements Reportable {
 	public void remover(int id) {
 		Product produtoRemover = productDAO.buscarPorId(id);
 		
+		boolean historicoProduto = productionOrderDAO.existeOrdemComProdutoId(id);
+		if(historicoProduto) {
+			throw new BusinessRuleException("Não é possível remover um produto que tem histórico em uma ordem de produção.");
+		}
+
 		productDAO.remover(produtoRemover);
 	}
 

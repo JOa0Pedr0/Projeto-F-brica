@@ -162,7 +162,8 @@ public class ProductionOrderService implements Reportable {
 		sb.append("\n\nRecursos Atualmente Alocados em Ordens:");
 
 		sb.append("\nMáquinas Alocadas:");
-		ordensDeProducao.stream().filter(ordem -> ordem.getStatus() == OrderStatus.EM_ANDAMENTO).map(ordem -> ordem.getMaquinaDesignada()).collect(Collectors.toSet())
+		ordensDeProducao.stream().filter(ordem -> ordem.getStatus() == OrderStatus.EM_ANDAMENTO)
+				.map(ordem -> ordem.getMaquinaDesignada()).collect(Collectors.toSet())
 				.forEach(maquina -> sb.append("\n- Máquina #").append(maquina.getId()).append(" (")
 						.append(maquina.getModelo()).append(")"));
 

@@ -3,6 +3,7 @@ package service;
 import java.util.List;
 
 import dao.MachineDAO;
+import dao.ProductionOrderDAO;
 import entities.Machine;
 import entities.StatusMachine;
 import interfaces.Reportable;
@@ -11,6 +12,7 @@ import service.exceptions.BusinessRuleException;
 public class MachineService implements Reportable {
 
 	private MachineDAO machineDAO = new MachineDAO();
+	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
 
 	public void adicionarMaquina(String modelo, StatusMachine status) {
 		if (status == null) {
@@ -48,6 +50,11 @@ public class MachineService implements Reportable {
 	public void removerMaquina(int id) {
 		
 		Machine maquinaRemover = machineDAO.buscarPorId(id);
+		boolean historicoMaquina = productionOrderDAO.existeOrdemComMaquinaId(id);
+		
+		if(historicoMaquina) {
+			throw new BusinessRuleException("Não é possível remover uma máquina que tem histórico em uma ordem de produção.");
+		}
 		
 		machineDAO.remover(maquinaRemover);
 	}

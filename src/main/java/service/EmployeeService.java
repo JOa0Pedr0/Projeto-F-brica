@@ -7,6 +7,7 @@ import java.util.List;
 
 import dao.EmployeeDAO;
 import dao.MachineDAO;
+import dao.ProductionOrderDAO;
 import entities.Employee;
 import entities.Machine;
 import entities.Manager;
@@ -18,6 +19,7 @@ public class EmployeeService implements Reportable {
 
 	private EmployeeDAO employeeDAO = new EmployeeDAO();
 	private MachineDAO machineDAO = new MachineDAO();
+	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
 
 	public void adicionarGerente(String nome, String matricula, String areaResponsavel) {
 		Manager novogerente = new Manager(nome, matricula, areaResponsavel);
@@ -26,11 +28,6 @@ public class EmployeeService implements Reportable {
 	}
 
 	public void adicionarOperadorDeMaquina(String nome, String matricula, int maquinaId) {
-
-		if (machineDAO.listarTodos().isEmpty()) {
-			throw new BusinessRuleException(
-					"O Operador de máquina não pode ser cadastrado sem a existência de máquinas no sistema.");
-		}
 
 		Machine maquina = machineDAO.buscarPorId(maquinaId);
 
@@ -63,10 +60,6 @@ public class EmployeeService implements Reportable {
 	}
 
 	public void atualizarOperadorDeMaquina(int operadorMaquinaId, int maquinaId, String nome) {
-		if (machineDAO.listarTodos().isEmpty()) {
-			throw new BusinessRuleException(
-					"O Operador de máquina não pode ser atualizado sem a existência de máquinas no sistema.");
-		}
 		Employee funcionario = employeeDAO.buscarPorId(operadorMaquinaId);
 		if (!(funcionario instanceof OperatorMachine)) {
 			throw new BusinessRuleException("O ID " + operadorMaquinaId + " não pertence a um Operador de Máquina.");
@@ -83,6 +76,14 @@ public class EmployeeService implements Reportable {
 
 	public void remover(int id) {
 		Employee funcionarioRemover = employeeDAO.buscarPorId(id);
+		if (funcionarioRemover instanceof OperatorMachine) {
+			boolean operadorHistorico = productionOrderDAO.existeOrdemComOperadorId(id);
+
+			if (operadorHistorico) {
+				throw new BusinessRuleException(
+						"Não é possível remover um operador que tenha histórico em uma ordem de produção.");
+			}
+		}
 
 		employeeDAO.remover(funcionarioRemover);
 	}

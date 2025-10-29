@@ -90,6 +90,8 @@ public class ProductionOrder {
 		return dataDeCriacao;
 	}
 
+	
+
 	@Override
 	public String toString() {
 		String dataFormatada = (dataDeCriacao != null) ? (fmt.format(dataDeCriacao)) : "N/A";
@@ -97,7 +99,7 @@ public class ProductionOrder {
 		return "ProductionOrder [id=" + id + ", produtoASerProduzido=" + produtoASerProduzido.getNome()
 				+ ", quantidade=" + quantidade + ", maquinaDesignada=" + maquinaDesignada.getModelo()
 				+ ", operadorResponsavel=" + operadorResponsavel.getNome() + ", dataDeCriacao=" + dataFormatada
-				+ ", Status=" + getStatus() + "]"; 
+				+ ", Status=" + getStatus() + "]";
 	}
 
 }
