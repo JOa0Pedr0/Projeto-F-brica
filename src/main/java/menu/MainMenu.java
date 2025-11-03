@@ -2,6 +2,8 @@ package menu;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import service.exceptions.BusinessRuleException;
 import service.exceptions.ResourceNotFoundException;
@@ -22,6 +24,8 @@ public class MainMenu {
 		this.sc = sc;
 		this.productionOrderMenu = productionOrderMenu;
 	}
+	
+	private static final Logger logger = LoggerFactory.getLogger(MainMenu.class);
 
 	public void mainMenu() {
 		int op = -1;
@@ -72,18 +76,21 @@ public class MainMenu {
 			InputMismatchException e) {
 				System.out.println("Entrada inválida, por favor digite uma opção númerica válida.");
 				sc.nextLine();
+				logger.warn("Entrada inválida do usuário. Esperava um número. Stack trace: {}", e.getMessage());
 
 			} catch (jakarta.persistence.RollbackException e) {
 				System.out.println("\nERRO DE INTEGRIDADE: A operação não pôde ser concluída.");
 				System.out.println(
 						"Motivo: Este registro (ex: Máquina, Funcionário...) está sendo usado por outra parte do sistema (ex: um Produto ou uma Ordem de Produção) e não pode ser removido.");
-			} catch (ResourceNotFoundException e) {
+				logger.warn("Erro ao tentar excluir uma entidade associada a alguma outra: {}", e.getMessage());
+		
+			} catch (BusinessRuleException | ResourceNotFoundException e) {
 				System.out.println(e.getMessage());
+				logger.warn("Regra de negócio ou busca falhou: {}", e.getMessage());
 				sc.nextLine();
-
-			} catch (BusinessRuleException e) {
-				System.out.println(e.getMessage());
-				sc.nextLine();
+			}catch(Exception e) {
+				System.out.println("\n[ERRO INESPERADO DO SISTEMA]: Ocorreu uma falha grave.");
+				logger.error("Erro inesperado não tratado capturado no MainMenu:", e);
 			}
 		}
 	}

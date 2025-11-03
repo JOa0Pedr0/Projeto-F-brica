@@ -1,0 +1,23 @@
+2025-11-03 15:09:55 [main] WARN  menu.MainMenu - Entrada inválida do usuário. Esperava um número. Stack trace: null
+2025-11-03 15:10:07 [main] DEBUG service.ProductService - Buscando lista de todos os produtos.
+2025-11-03 15:10:07 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: fabrica-jpa]
+2025-11-03 15:10:07 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-11-03 15:10:07 [main] WARN  org.hibernate.orm.deprecation - HHH90000021: Encountered deprecated setting [javax.persistence.jdbc.user], use [jakarta.persistence.jdbc.user] instead
+2025-11-03 15:10:07 [main] WARN  org.hibernate.orm.deprecation - HHH90000021: Encountered deprecated setting [javax.persistence.jdbc.password], use [jakarta.persistence.jdbc.password] instead
+2025-11-03 15:10:07 [main] WARN  org.hibernate.orm.deprecation - HHH90000021: Encountered deprecated setting [javax.persistence.jdbc.url], use [jakarta.persistence.jdbc.url] instead
+2025-11-03 15:10:07 [main] WARN  org.hibernate.orm.deprecation - HHH90000021: Encountered deprecated setting [javax.persistence.jdbc.driver], use [jakarta.persistence.jdbc.driver] instead
+2025-11-03 15:10:07 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-11-03 15:10:07 [main] WARN  o.hibernate.orm.connections.pooling - HHH10001002: Using built-in connection pool (not intended for production use)
+2025-11-03 15:10:07 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Loaded JDBC driver class: org.h2.Driver
+2025-11-03 15:10:07 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001012: Connecting with JDBC URL [jdbc:h2:./fabrica.db;AUTO_SERVER=TRUE]
+2025-11-03 15:10:07 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001001: Connection properties: {password=****, user=sa}
+2025-11-03 15:10:07 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001003: Autocommit mode: false
+2025-11-03 15:10:07 [main] INFO  o.hibernate.orm.connections.pooling - HHH10001115: Connection pool size: 20 (min=1)
+2025-11-03 15:10:08 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-03 15:10:09 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-03 15:10:09 [main] INFO  o.hibernate.orm.connections.access - HHH10001501: Connection obtained from JdbcConnectionAccess [org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess@6c4ce583] for (non-JTA) DDL execution was not in auto-commit mode; the Connection 'local transaction' will be committed and the Connection will be set into auto-commit mode.
+2025-11-03 15:10:09 [main] DEBUG dao.ProductDAO - Executando querry JQPL: SELECT p FROM Product p
+2025-11-03 15:10:19 [main] DEBUG service.ProductService - Buscando produto por ID: 999
+2025-11-03 15:10:19 [main] DEBUG dao.ProductDAO - Buscando produto com ID: 999
+2025-11-03 15:10:19 [main] WARN  dao.ProductDAO - Produto com ID: 999 não encontrado.
+2025-11-03 15:10:19 [main] WARN  menu.MainMenu - Regra de negócio ou busca falhou: Produto não encontrado ID 999
