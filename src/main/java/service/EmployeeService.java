@@ -2,6 +2,8 @@ package service;
 
 import java.time.LocalDateTime;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -17,17 +19,20 @@ import entities.OperatorMachine;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
 
+@Service
 public class EmployeeService implements Reportable {
 
 	private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
-	private EmployeeDAO employeeDAO = new EmployeeDAO();
+	@Autowired
+	private EmployeeDAO employeeDAO;
+
 	private MachineDAO machineDAO = new MachineDAO();
 	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
 
 	public void adicionarGerente(String nome, String matricula, String areaResponsavel) {
 		logger.debug("Iniciado cadastro de gerente.");
-		
+
 		Manager novogerente = new Manager(nome, matricula, areaResponsavel);
 
 		employeeDAO.cadastrar(novogerente);
@@ -36,7 +41,7 @@ public class EmployeeService implements Reportable {
 
 	public void adicionarOperadorDeMaquina(String nome, String matricula, int maquinaId) {
 		logger.debug("Inciando cadastro de Operador de Máquina.");
-		
+
 		if (machineDAO.listarTodos().isEmpty()) {
 			logger.warn("Tentativa de cadastrar operador falhou: Nenhuma máquina registrada.");
 			throw new BusinessRuleException(

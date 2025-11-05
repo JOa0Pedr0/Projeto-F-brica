@@ -3,6 +3,9 @@ package service;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import dao.MachineDAO;
 import dao.ProductDAO;
 import dao.ProductionOrderDAO;
@@ -11,13 +14,15 @@ import entities.Product;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
 
+@Service
 public class ProductService implements Reportable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
-	private ProductDAO productDAO = new ProductDAO();
-	private MachineDAO machineDAO = new MachineDAO();
-	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
+	@Autowired
+	private ProductDAO productDAO;
+	private MachineDAO machineDAO;
+	private ProductionOrderDAO productionOrderDAO;
 
 	public void adicionarProduto(String nome, String descricao, double preco, int maquinaId) {
 		logger.debug("Iniciando cadastro de novo produto. Nome: {}", nome);
@@ -57,7 +62,7 @@ public class ProductService implements Reportable {
 		}
 
 		produtoAtualizar.setNome(nome);
-		
+
 		produtoAtualizar.setDescricao(descricao);
 		produtoAtualizar.setPrecoCusto(preco);
 		produtoAtualizar.setMaquina(maquinaAttProduto);
@@ -78,7 +83,7 @@ public class ProductService implements Reportable {
 		}
 
 		productDAO.remover(produtoRemover);
-		
+
 	}
 
 	@Override

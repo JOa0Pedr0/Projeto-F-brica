@@ -3,6 +3,9 @@ package service;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import dao.MachineDAO;
 import dao.ProductionOrderDAO;
 import entities.Machine;
@@ -10,12 +13,15 @@ import entities.StatusMachine;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
 
+@Service
 public class MachineService implements Reportable {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(MachineService.class);
 
-	private MachineDAO machineDAO = new MachineDAO();
-	private ProductionOrderDAO productionOrderDAO = new ProductionOrderDAO();
+	@Autowired
+	private MachineDAO machineDAO;
+	
+	private ProductionOrderDAO productionOrderDAO;
 
 	public void adicionarMaquina(String modelo, StatusMachine status) {
 		if (status == null) {
@@ -61,18 +67,16 @@ public class MachineService implements Reportable {
 		logger.debug("Iniciando remoção da máquina ID: {}", id);
 		Machine maquinaRemover = machineDAO.buscarPorId(id);
 		boolean historicoMaquina = productionOrderDAO.existeOrdemComMaquinaId(id);
-		
-		if(historicoMaquina) {
+
+		if (historicoMaquina) {
 			logger.warn("Tentativa de remover máquina ID: {} falhou. Máquina está em uso.");
-			throw new BusinessRuleException("Não é possível remover uma máquina que tem histórico em uma ordem de produção.");
+			throw new BusinessRuleException(
+					"Não é possível remover uma máquina que tem histórico em uma ordem de produção.");
 		}
-		
+
 		machineDAO.remover(maquinaRemover);
 		logger.info("Máquina ID: {} removida com sucesso.", id);
 	}
-	
-	
-
 
 	@Override
 	public String gerarRelatorio() {
