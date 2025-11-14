@@ -9,7 +9,7 @@ import jakarta.persistence.ManyToOne;
 @DiscriminatorValue("OPERADOR")
 public class OperatorMachine extends Employee {
 
-	@ManyToOne(optional = false)
+	@ManyToOne
 	@JoinColumn(name = "maquina_alocada_id")
 	private Machine maquinaAlocada;
 	

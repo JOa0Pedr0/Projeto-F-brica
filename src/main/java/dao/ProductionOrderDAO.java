@@ -31,6 +31,7 @@ public class ProductionOrderDAO {
 		em.persist(ordemDeProducao);
 
 		logger.info("Ordem de Produção cadastrada com sucesso. Novo ID: {}.", ordemDeProducao.getId());
+		
 
 	}
 
@@ -58,16 +59,17 @@ public class ProductionOrderDAO {
 	}
 
 	@Transactional
-	public void atualizar(ProductionOrder ordemDeProducao) {
+	public ProductionOrder atualizar(ProductionOrder ordemDeProducao) {
 
 		if (ordemDeProducao == null) {
 			logger.error("Tentativa de atualizar Ordem de Produção nula.");
 			throw new IllegalArgumentException("Ordem de serviço não pode ser nulo.");
 		}
 
-		em.merge(ordemDeProducao);
+		ProductionOrder atualizado = em.merge(ordemDeProducao);
 
 		logger.info("Ordem de Produção com ID: {} atualizada com sucesso.", ordemDeProducao.getId());
+		return atualizado;
 
 	}
 

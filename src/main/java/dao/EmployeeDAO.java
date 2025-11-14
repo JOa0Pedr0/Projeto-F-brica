@@ -21,7 +21,7 @@ public class EmployeeDAO {
 	private EntityManager em;
 
 	@Transactional
-	public void cadastrar(Employee funcionario) {
+	public Employee cadastrar(Employee funcionario) {
 
 		if (funcionario == null) {
 			logger.error("Tentativa de cadastrar funcionário nulo.");
@@ -31,6 +31,7 @@ public class EmployeeDAO {
 		em.persist(funcionario);
 
 		logger.info("Funcionário cadastrado com sucesso. Novo ID: {}", funcionario.getId());
+		return funcionario;
 
 	}
 
@@ -59,17 +60,17 @@ public class EmployeeDAO {
 	}
 
 	@Transactional
-	public void atualizar(Employee funcionario) {
+	public Employee atualizar(Employee funcionario) {
 
 		if (funcionario == null) {
 			logger.error("Tentativa de atualizar funcionário nulo.");
 			throw new IllegalArgumentException("Funcionário não pode ser nulo.");
 		}
 
-		em.merge(funcionario);
+		Employee atualizado = em.merge(funcionario);
 
 		logger.info("Funcionário com ID: {} atualizado com sucesso.", funcionario.getId());
-
+		return atualizado;
 	}
 
 	@Transactional

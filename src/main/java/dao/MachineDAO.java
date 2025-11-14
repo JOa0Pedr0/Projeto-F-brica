@@ -57,17 +57,17 @@ public class MachineDAO {
 	}
 
 	@Transactional
-	public void atualizar(Machine maquina) {
+	public Machine atualizar(Machine maquina) {
 
 		if (maquina == null) {
 			logger.error("Tentativa de atualizar uma máquina nula.");
 			throw new IllegalArgumentException("Máquina não pode ser nulo.");
 		}
 
-		em.merge(maquina);
+		Machine maquinaAtualizada = em.merge(maquina);
 
 		logger.info("Máquina com ID: {} atualizada com sucesso.", maquina.getId());
-
+		return maquinaAtualizada;
 	}
 
 	@Transactional

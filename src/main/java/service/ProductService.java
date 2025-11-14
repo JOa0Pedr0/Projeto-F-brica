@@ -1,6 +1,9 @@
 package service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,21 +24,27 @@ public class ProductService implements Reportable {
 
 	@Autowired
 	private ProductDAO productDAO;
+	@Autowired
 	private MachineDAO machineDAO;
+	@Autowired
 	private ProductionOrderDAO productionOrderDAO;
 
-	public void adicionarProduto(String nome, String descricao, double preco, int maquinaId) {
-		logger.debug("Iniciando cadastro de novo produto. Nome: {}", nome);
+	public Product adicionarProduto(Product produto) {
+		logger.debug("Iniciando cadastro de novo produto. Nome: {}", produto.getNome());
 
-		Machine maquina = machineDAO.buscarPorId(maquinaId);
-
-		if (preco <= 0) {
-			logger.warn("Tentativa de cadastrar produto '{}' com preço inválido ({}).", nome, preco);
+		if (produto.getPrecoCusto() <= 0) {
+			logger.warn("Tentativa de cadastrar produto '{}' com preço inválido ({}).", produto.getNome(),
+					produto.getPrecoCusto());
 			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
 		}
 
-		Product produto = new Product(preco, nome, descricao, maquina);
+		if (produto.getMaquina() == null || produto.getMaquina().getId() == 0) {
+			logger.warn("Tentativa de cadastrar produto '{}' em uma máquina válida.", produto.getNome());
+			throw new BusinessRuleException("A máquina informada não é válida.");
+		}
+
 		productDAO.cadastrar(produto);
+		return produto;
 
 	}
 
@@ -50,24 +59,25 @@ public class ProductService implements Reportable {
 		return productDAO.buscarPorId(id);
 	}
 
-	public void atualizar(int produtoId, String nome, String descricao, double preco, int maquinaId) {
+	public Product atualizar(int produtoId, Product novosDados) {
 		logger.debug("Iniciando atualização do produto ID: {}", produtoId);
 
 		Product produtoAtualizar = productDAO.buscarPorId(produtoId);
-		Machine maquinaAttProduto = machineDAO.buscarPorId(maquinaId);
+		Machine maquinaAttProduto = machineDAO.buscarPorId(novosDados.getMaquina().getId());
 
-		if (preco <= 0) {
-			logger.warn("Tentativa de atualizar produto ID: {} com preço inválido ({}).", produtoId, preco);
+		if (novosDados.getPrecoCusto() <= 0) {
+			logger.warn("Tentativa de atualizar produto ID: {} com preço inválido ({}).", produtoId,
+					novosDados.getPrecoCusto());
 			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
 		}
 
-		produtoAtualizar.setNome(nome);
-
-		produtoAtualizar.setDescricao(descricao);
-		produtoAtualizar.setPrecoCusto(preco);
+		produtoAtualizar.setNome(novosDados.getNome());
+		produtoAtualizar.setDescricao(novosDados.getDescricao());
+		produtoAtualizar.setPrecoCusto(novosDados.getPrecoCusto());
 		produtoAtualizar.setMaquina(maquinaAttProduto);
 
-		productDAO.atualizar(produtoAtualizar);
+		Product produtoAtualizado = productDAO.atualizar(produtoAtualizar);
+		return produtoAtualizado;
 	}
 
 	public void remover(int id) {
@@ -86,20 +96,40 @@ public class ProductService implements Reportable {
 
 	}
 
-	@Override
-	public String gerarRelatorio() {
-		logger.debug("Iniciando geração de relatório de estoque de produtos.");
-		List<Product> produtosEmEstoque = productDAO.listarTodas();
+	public Map<String, Object> obterDadosRelatorio() {
+		logger.debug("Coletando dados puro para gerar relatório.");
+		List<Product> produtos = productDAO.listarTodas();
 
-		if (produtosEmEstoque.isEmpty()) {
-			logger.warn("Geração de relatório de produtos falhou: estoque vazio.");
-			return "Estoque vazio. Nenhum relatório a ser gerado.";
+		if (produtos.isEmpty()) {
+			logger.warn("Não há dados para o relatório.");
+			throw new BusinessRuleException("Nenhum produto cadastrado para gerar relatório.");
 		}
 
-		double valorTotalEmEstoque = produtosEmEstoque.stream().mapToDouble(Product::getPrecoCusto).sum();
+		double valorEstoque = produtos.stream().mapToDouble(Product::getPrecoCusto).sum();
 
-		logger.info("Relatório de estoque de produtos gerado com sucesso.");
-		return "Quantidade de produtos no estoque: " + produtosEmEstoque.size() + "\nValor do estoque: R$ "
-				+ String.format("%.2f", valorTotalEmEstoque);
+		Map<String, Object> dadosRelatorio = new HashMap<>();
+
+		dadosRelatorio.put("QuantidadeDeProdutos", produtos.size());
+		dadosRelatorio.put("PrecoEstoqueEstimado", valorEstoque);
+
+		logger.info("Dados para relatório coletados com sucesso.");
+		return dadosRelatorio;
+	}
+
+	@Override
+	public String gerarRelatorio() {
+		try {
+			Map< String, Object> dados = obterDadosRelatorio();
+			StringBuilder sb = new StringBuilder();
+			
+			sb.append("Quantidade de produtos registrados:").append(dados.get("QuantidadeDeProdutos"));
+			sb.append("Preço estimado do estoque: ").append(dados.get("PrecoEstoqueEstimado"));
+			
+			return sb.toString();
+		} catch (BusinessRuleException e) {
+			logger.warn("Operação falhou: {}", e.getMessage());
+			return e.getMessage();
+		}
+
 	}
 }
