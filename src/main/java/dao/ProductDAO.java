@@ -57,7 +57,7 @@ public class ProductDAO {
 	}
 
 	@Transactional
-	public void atualizar(Product produto) {
+	public Product atualizar(Product produto) {
 
 		if (produto == null) {
 			logger.error("Tentativa de atualizar produto nulo.");
@@ -67,7 +67,7 @@ public class ProductDAO {
 		em.merge(produto);
 
 		logger.info("Produto com ID: {} atualizado com sucesso.", produto.getId());
-
+		return produto;
 	}
 
 	@Transactional

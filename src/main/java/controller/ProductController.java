@@ -16,53 +16,47 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import entities.Machine;
-import service.MachineService;
+import entities.Product;
+import service.ProductService;
 
 @RestController
-@RequestMapping("/api/maquinas")
-public class MachineController {
+@RequestMapping("/api/produtos")
+public class ProductController {
 
 	@Autowired
-	private MachineService machineService;
-
-	@GetMapping
-	public List<Machine> listartodas() {
-		return machineService.listarTodasMaquinas();
-	}
-
+	private ProductService productService;
+	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Machine adicionar(@RequestBody Machine maquina) {
-		machineService.adicionarMaquina(maquina);
-		return maquina;
+	public Product adicionar(@RequestBody Product produto) {
+		return productService.adicionarProduto(produto);
 	}
-
-	@PutMapping("/{id}")
-	public Machine atualizar(@PathVariable int id, @RequestBody Machine maquina) {
-
-		return machineService.atualizarMaquina(id, maquina);
+	
+	@GetMapping
+	public List<Product> listarTodos(){
+		return productService.listarTodosProdutos();
 	}
-
+	
 	@GetMapping("/{id}")
-	public ResponseEntity<Machine> buscarPorId(@PathVariable int id) {
-
-		Machine maquina = machineService.buscarPorId(id);
-
-		return ResponseEntity.ok(maquina);
+	public ResponseEntity<Product> buscarPorI(@PathVariable int id){
+		Product produto = productService.buscarPorId(id);
+		return ResponseEntity.ok(produto);
 	}
-
+	
+	@PutMapping("/{id}")
+	public Product atualizar(@PathVariable int id, @RequestBody Product produto) {
+		return productService.atualizar(id, produto);
+	}
+	
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> remover(@PathVariable int id) {
-		machineService.removerMaquina(id);
-
+	public ResponseEntity<Void> remover(@PathVariable int id){
+		productService.remover(id);
 		return ResponseEntity.noContent().build();
 	}
 	
 	@GetMapping("/relatorio")
-	public ResponseEntity<Map<String, Object>> getRelatorio(){
-		Map<String, Object> dados = machineService.obterDadosRelatorio();
+	public ResponseEntity<Map<String,Object>> getRelatorio(){
+		Map<String, Object> dados = productService.obterDadosRelatorio();
 		return ResponseEntity.ok(dados);
-		
 	}
 }
