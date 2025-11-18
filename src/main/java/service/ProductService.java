@@ -16,6 +16,7 @@ import entities.Machine;
 import entities.Product;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
+import service.exceptions.ResourceNotFoundException;
 
 @Service
 public class ProductService implements Reportable {
@@ -38,67 +39,82 @@ public class ProductService implements Reportable {
 			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
 		}
 
-		if (produto.getMaquina() == null || produto.getMaquina().getId() == 0) {
-			logger.warn("Tentativa de cadastrar produto '{}' em uma máquina válida.", produto.getNome());
-			throw new BusinessRuleException("A máquina informada não é válida.");
-		}
+		int maquinaId = produto.getMaquina().getId();
 
-		productDAO.cadastrar(produto);
-		return produto;
+		Machine maquinaVinculada = machineDAO.findById(maquinaId).orElseThrow(() -> {
+			logger.warn("Tentativa de vincular uma máquina inexistente em um novo produto.");
+			throw new ResourceNotFoundException("Máquina com ID: " + maquinaId + " não existe.");
+		});
+
+		Product produtoSalvo = new Product(produto.getPrecoCusto(), produto.getNome(), produto.getDescricao(),
+				maquinaVinculada);
+		Product novoProduto = productDAO.save(produtoSalvo);
+		return novoProduto;
 
 	}
 
 	public List<Product> listarTodosProdutos() {
 		logger.debug("Buscando lista de todos os produtos.");
-		return productDAO.listarTodas();
+		return productDAO.findAll();
 	}
 
 	public Product buscarPorId(int id) {
 		logger.debug("Buscando produto por ID: {}", id);
 
-		return productDAO.buscarPorId(id);
+		return productDAO.findById(id).orElseThrow(() -> {
+			logger.warn("Produto com ID: {} não encontrado.", id);
+			return new ResourceNotFoundException("Produto não encontrado para o ID:" + id);
+		});
 	}
 
 	public Product atualizar(int produtoId, Product novosDados) {
 		logger.debug("Iniciando atualização do produto ID: {}", produtoId);
 
-		Product produtoAtualizar = productDAO.buscarPorId(produtoId);
-		Machine maquinaAttProduto = machineDAO.buscarPorId(novosDados.getMaquina().getId());
+		Product produtoAtualizar = this.buscarPorId(produtoId);
 
 		if (novosDados.getPrecoCusto() <= 0) {
 			logger.warn("Tentativa de atualizar produto ID: {} com preço inválido ({}).", produtoId,
 					novosDados.getPrecoCusto());
 			throw new BusinessRuleException("O preço informado deve ser maior que 0.");
 		}
+		
+		int maquinaId = novosDados.getMaquina().getId();
+		
+		Machine novaMaquina = machineDAO.findById(maquinaId).orElseThrow(() ->  {
+			logger.warn("Tetativa inválida de atualizar produto com máquina inexistente.");
+			throw new ResourceNotFoundException("Máquina com ID: " + maquinaId + " não existe.");
+		});
 
 		produtoAtualizar.setNome(novosDados.getNome());
 		produtoAtualizar.setDescricao(novosDados.getDescricao());
 		produtoAtualizar.setPrecoCusto(novosDados.getPrecoCusto());
-		produtoAtualizar.setMaquina(maquinaAttProduto);
+		produtoAtualizar.setMaquina(novaMaquina);
 
-		Product produtoAtualizado = productDAO.atualizar(produtoAtualizar);
+		Product produtoAtualizado = productDAO.save(produtoAtualizar);
 		return produtoAtualizado;
 	}
 
 	public void remover(int id) {
 		logger.debug("Iniciando remoção do produto ID: {}", id);
-		Product produtoRemover = productDAO.buscarPorId(id);
+		Product produtoRemover = this.buscarPorId(id);
 
 		logger.debug("Verificando histórico de ordens para o produto ID: {}", id);
-		boolean historicoProduto = productionOrderDAO.existeOrdemComProdutoId(id);
+		Long contagem = productionOrderDAO.countByProdutoId(id);
+
+		boolean historicoProduto = contagem > 0;
 		if (historicoProduto) {
-			logger.warn("Tentativa de remover produto ID: {} falhou. Produto está em uso em ordens de produção.", id);
+			logger.warn("Tentativa de remover produto ID: {} falhou. Produto está vinculado a uma  Ordem de Produção.", id);
 			throw new BusinessRuleException(
 					"Não é possível remover um produto que tem histórico em uma ordem de produção.");
 		}
 
-		productDAO.remover(produtoRemover);
+		productDAO.delete(produtoRemover);
 
 	}
 
 	public Map<String, Object> obterDadosRelatorio() {
 		logger.debug("Coletando dados puro para gerar relatório.");
-		List<Product> produtos = productDAO.listarTodas();
+		List<Product> produtos = productDAO.findAll();
 
 		if (produtos.isEmpty()) {
 			logger.warn("Não há dados para o relatório.");
@@ -119,12 +135,12 @@ public class ProductService implements Reportable {
 	@Override
 	public String gerarRelatorio() {
 		try {
-			Map< String, Object> dados = obterDadosRelatorio();
+			Map<String, Object> dados = obterDadosRelatorio();
 			StringBuilder sb = new StringBuilder();
-			
+
 			sb.append("Quantidade de produtos registrados:").append(dados.get("QuantidadeDeProdutos"));
 			sb.append("Preço estimado do estoque: ").append(dados.get("PrecoEstoqueEstimado"));
-			
+
 			return sb.toString();
 		} catch (BusinessRuleException e) {
 			logger.warn("Operação falhou: {}", e.getMessage());
