@@ -18,11 +18,13 @@ import dao.EmployeeDAO;
 import dao.MachineDAO;
 import dao.ProductionOrderDAO;
 import entities.Employee;
+import entities.Machine;
 import entities.Manager;
 import entities.OperatorMachine;
 import entities.StatusMachine;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
+import service.exceptions.ResourceNotFoundException;
 
 @Service
 public class EmployeeService implements Reportable {
@@ -39,9 +41,9 @@ public class EmployeeService implements Reportable {
 	public Manager adicionarGerente(Manager gerente) {
 		logger.debug("Iniciado cadastro de gerente.");
 
-		employeeDAO.cadastrar(gerente);
+		Manager gerenteSalvo = employeeDAO.save(gerente);
 		logger.info("Cadastro de gerente concluído com sucesso.");
-		return gerente;
+		return gerenteSalvo;
 	}
 
 	public OperatorMachine adicionarOperadorDeMaquina(OperatorMachine operadorMaquina) {
@@ -51,42 +53,44 @@ public class EmployeeService implements Reportable {
 			logger.warn("Tentativa de adiconar máquina null.");
 			throw new BusinessRuleException("Máquina adicionada não existe.");
 		}
-		if (machineDAO.listarTodos().isEmpty()) {
+		if (machineDAO.findAll().isEmpty()) {
 			logger.warn("Tentativa de cadastrar operador falhou: Nenhuma máquina registrada.");
 			throw new BusinessRuleException(
 					"O Operador de máquina não pode ser cadastrado sem a existência de máquinas no sistema.");
 		}
 
-		employeeDAO.cadastrar(operadorMaquina);
+		OperatorMachine operadorSalvo = employeeDAO.save(operadorMaquina);
 		logger.info("Operador de máquina adicionado com sucesso.");
-		return (operadorMaquina);
+		return operadorSalvo;
 
 	}
 
 	public List<Employee> listarTodosFuncionarios() {
 		logger.debug("Inciado Listagem de funcionários.");
-		return employeeDAO.listarTodas();
+		return employeeDAO.findAll();
 	}
 
 	public Employee buscarPorId(int id) {
 		logger.debug("Tentativa de busca de funcionário ID: {}.", id);
-		return employeeDAO.buscarPorId(id);
+		return employeeDAO.findById(id).orElseThrow(() -> {
+			logger.warn("Máquina com ID: {} não encontrado.", id);
+			return new ResourceNotFoundException("Funcionário não encontrado para o ID: " + id);
+		});
 	}
 
 	public Manager atualizarGerente(int id, Manager gerente) {
 		logger.debug("Inciando atualização do funcionário ID: {}", id);
-		Employee funcionario = employeeDAO.buscarPorId(id);
+		Employee funcionario = this.buscarPorId(id);
 
 		if (!(funcionario instanceof Manager)) {
 			logger.warn("Falha ao tentar atualizar: ID {} não é um Gerente", id);
 			throw new BusinessRuleException("O ID " + id + " não pertence a um Gerente.");
 		}
 
-		Manager gerenteAtt = (Manager) funcionario;
-		gerenteAtt.setNome(gerente.getNome());
-		gerenteAtt.setAreaResponsavel(gerente.getAreaResponsavel());
-
-		employeeDAO.atualizar(gerenteAtt);
+		Manager gerentCast = (Manager) funcionario;
+		gerentCast.setNome(gerente.getNome());
+		gerentCast.setAreaResponsavel(gerente.getAreaResponsavel());
+		Manager gerenteAtt = employeeDAO.save(gerentCast);
 		logger.info("Gerente ID: {} atualizado com sucesso.", id);
 
 		return gerenteAtt;
@@ -94,28 +98,42 @@ public class EmployeeService implements Reportable {
 
 	public OperatorMachine atualizarOperadorDeMaquina(int operadorMaquinaId, OperatorMachine operatorMachine) {
 		logger.debug("Inciando atualização do funcionário ID: {}", operadorMaquinaId);
-		Employee funcionario = employeeDAO.buscarPorId(operadorMaquinaId);
+		Employee funcionario = this.buscarPorId(operadorMaquinaId);
 		if (!(funcionario instanceof OperatorMachine)) {
 			logger.warn("Falha ao tentar atualizar: ID {} não é um Operador de Máquina", operadorMaquinaId);
 			throw new BusinessRuleException("O ID " + operadorMaquinaId + " não pertence a um Operador de Máquina.");
 		}
-		OperatorMachine operadorMaquinaAtt = (OperatorMachine) funcionario;
 
-		operadorMaquinaAtt.setNome(operatorMachine.getNome());
-		operadorMaquinaAtt.setMaquinaAlocada(operatorMachine.getMaquinaAlocada());
+		int novaMaquinaId = operatorMachine.getMaquinaAlocada().getId();
 
-		employeeDAO.atualizar(operadorMaquinaAtt);
+		Machine novaMaquina = machineDAO.findById(novaMaquinaId).orElseThrow(() -> {
+			logger.warn("Máquina com ID: {} não foi encontrada.", novaMaquinaId);
+			throw new ResourceNotFoundException("Máquina com ID: " + novaMaquinaId + " não encontrada.");
+		});
+
+		OperatorMachine operadorCast = (OperatorMachine) funcionario;
+
+		operadorCast.setNome(operatorMachine.getNome());
+		operadorCast.setMaquinaAlocada(novaMaquina);
+
+		OperatorMachine operadorMaquinaAtt = employeeDAO.save(operadorCast);
+
 		logger.info(" Operador de Máquina ID: {} atualizado com suceso", operadorMaquinaId);
 		return operadorMaquinaAtt;
 	}
 
 	public void remover(int id) {
 		logger.debug("Tentativa de remoção de funcionário ID: {}.", id);
-		Employee funcionarioRemover = employeeDAO.buscarPorId(id);
-		logger.debug("Validando a instancia do funcionário.");
+
+		Employee funcionarioRemover = this.buscarPorId(id);
+
+		logger.debug("Validando a instância do funcionário.");
+
 		if (funcionarioRemover instanceof OperatorMachine) {
 			logger.debug("Verificando se o funcionário tem registro em alguma Ordem de Produção.");
-			boolean operadorHistorico = productionOrderDAO.existeOrdemComOperadorId(id);
+			Long contagem = productionOrderDAO.countByOperadorId(id);
+
+			boolean operadorHistorico = contagem > 0;
 
 			if (operadorHistorico) {
 				logger.warn("Tentativa inválida de remover funcionário vinculado a uma Ordem de Produção.");
@@ -124,12 +142,13 @@ public class EmployeeService implements Reportable {
 			}
 		}
 
-		employeeDAO.remover(funcionarioRemover);
+		employeeDAO.delete(funcionarioRemover);
+		logger.info("Operador de máquina ID: {} removida com sucesso.", id);
 	}
 
 	public Map<String, Object> obterDadosRelatorio() {
 		logger.debug("Coletando dados puros para relatório");
-		List<Employee> funcionarios = employeeDAO.listarTodas();
+		List<Employee> funcionarios = employeeDAO.findAll();
 
 		if (funcionarios.isEmpty()) {
 			logger.warn("Não há dados para o relatório");
@@ -177,16 +196,17 @@ public class EmployeeService implements Reportable {
 			DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm").withZone(ZoneId.systemDefault());
 			sb.append("--- Relatório de Funcionários ---\n");
 			sb.append("Data de Geração:").append(fmt.format(LocalDateTime.now()));
-	
+
 			sb.append("- Total de funcionários: ").append(dados.get("totalFuncionarios"));
 			sb.append("\n- Gerentes: ").append(dados.get("totalGerentes"));
 			sb.append("\n- Operadores de máquinas: ").append(dados.get("totalOperadores"));
 			sb.append("\n\nSituação dos operadores: ");
 			sb.append("\n- Operadores em máquinas ativas (OPERANDO): ").append(dados.get("operadoresEmMaquinasAtivas"));
-			sb.append("\n- Operadores em máquinas inativas (PARADA/MANUTENÇÃO): ").append(dados.get("operadoresEmInatividade"));
+			sb.append("\n- Operadores em máquinas inativas (PARADA/MANUTENÇÃO): ")
+					.append(dados.get("operadoresEmInatividade"));
 			sb.append("\n- Setores ").append(dados.get("setores"));
 			sb.append("\n\nGerência por área:");
-			
+
 			return sb.toString();
 
 		} catch (BusinessRuleException e) {
@@ -194,7 +214,6 @@ public class EmployeeService implements Reportable {
 			return e.getMessage();
 		}
 
-		
 	}
 
 }

@@ -26,14 +26,14 @@ import entities.ProductionOrder;
 import entities.StatusMachine;
 import interfaces.Reportable;
 import service.exceptions.BusinessRuleException;
+import service.exceptions.ResourceNotFoundException;
 
 @Service
 public class ProductionOrderService implements Reportable {
 
-
 	@Autowired
 	private ProductionOrderDAO productionOrderDAO;
-	
+
 	@Autowired
 	private MachineDAO machineDAO;
 	@Autowired
@@ -48,65 +48,82 @@ public class ProductionOrderService implements Reportable {
 	public ProductionOrder criarNovaOrdem(ProductionOrder ordemRecebidaDoJSON) {
 		logger.debug("Inciando criação de Ordem de Produção.");
 
-		Product produtoReal = productDAO.buscarPorId(ordemRecebidaDoJSON.getProdutoASerProduzido().getId());
-		Machine maquinaReal = machineDAO.buscarPorId(ordemRecebidaDoJSON.getMaquinaDesignada().getId());
-		Employee funcionarioReal = employeeDAO.buscarPorId(ordemRecebidaDoJSON.getOperadorResponsavel().getId());
-
 		if (ordemRecebidaDoJSON.getQuantidade() <= 0) {
 			logger.warn("Quantidade inválida.");
 			throw new BusinessRuleException("A quantidade para uma ordem de produção deve ter um valor acima de 0.");
 		}
-
-		if (!(funcionarioReal instanceof OperatorMachine)) {
+		
+		int maquinaId = ordemRecebidaDoJSON.getMaquinaDesignada().getId();
+		int produtoId = ordemRecebidaDoJSON.getProdutoASerProduzido().getId();
+		int operadorId = ordemRecebidaDoJSON.getOperadorResponsavel().getId();
+		
+		Employee funcionario = employeeDAO.findById(operadorId).orElseThrow(() -> {
+			logger.warn("Tentativa inválida de adicionar um Operador de Máquina inexistente.");
+			throw new ResourceNotFoundException("");
+		});
+		
+		if(!(funcionario instanceof OperatorMachine)) {
 			logger.warn("Tentativa de adicionar Gerente em uma Operação de Operador.");
 			throw new BusinessRuleException("Não é possível vincular um Gerente a uma ordem de produção.");
 		}
+		
+		OperatorMachine operador = (OperatorMachine) funcionario;
+		
+		Product produtoOrdem = productDAO.findById(produtoId).orElseThrow(() -> {
+			logger.warn("Tentativa inválida de adicionar um produto inexistente.");
+			throw new ResourceNotFoundException("O produto com ID: " + produtoId + " não existe");
+		});
+		
+		Machine maquinaOrdem = machineDAO.findById(maquinaId).orElseThrow(() -> {
+			logger.warn("Tentativa inválida de adicionar uma máquina inexistente.");
+			throw new ResourceNotFoundException("A máquina com ID: " + maquinaId + " não existe.");	
+		});
 
-		if (maquinaReal.getStatus() != StatusMachine.OPERANDO) {
-			logger.warn("Tentativa de adicionar máquina com status: {}", maquinaReal.getStatus());
-			throw new BusinessRuleException(
-					"A máquina não se encontra disponível (Status: " + maquinaReal.getStatus() + ").");
+		if (maquinaOrdem.getStatus() != StatusMachine.OPERANDO) {
+			logger.warn("Tentativa de adicionar máquina com status: {}",
+					maquinaOrdem.getStatus());
+			throw new BusinessRuleException("A máquina não se encontra disponível (Status: "
+					+ maquinaOrdem.getStatus() + ").");
 		}
 
-		OperatorMachine operadorReal = (OperatorMachine) funcionarioReal;
+		ProductionOrder novaOrdem = new ProductionOrder(produtoOrdem, ordemRecebidaDoJSON.getQuantidade(), maquinaOrdem, operador);
+		ProductionOrder ordemSalva = productionOrderDAO.save(novaOrdem);
 
-		ProductionOrder ordemDeProducaoFinal = new ProductionOrder(produtoReal, ordemRecebidaDoJSON.getQuantidade(),
-				maquinaReal, operadorReal);
-
-		productionOrderDAO.cadastrar(ordemDeProducaoFinal);
-		logger.info("Nova Ordem de Produção criada com sucesso. ID: {}", ordemDeProducaoFinal.getId());
-		return ordemDeProducaoFinal;
+		logger.info("Nova Ordem de Produção criada com sucesso. ID: {}", ordemSalva.getId());
+		return ordemSalva;
 	}
 
 	public List<ProductionOrder> listarTodas() {
 		logger.debug("Inciando buscas de Ordens de Produções.");
-		return productionOrderDAO.listarTodas();
+		return productionOrderDAO.findAll();
 	}
 
 	public ProductionOrder buscarPorId(int id) {
 		logger.debug("Iniciando busca para Ordem de Produção ID: {}.", id);
-		return productionOrderDAO.buscarPorId(id);
+		return productionOrderDAO.findById(id).orElseThrow(() -> {
+			logger.warn("Ordem de produção com ID: {} não encontrada.", id);
+			return new ResourceNotFoundException("Ordem de produção com ID:" + id + " não encontrada.");
+		});
 	}
 
 	public ProductionOrder iniciarOrdem(int ordemId) {
 		logger.debug("Inciado uma Ordem de Produção ID: {}.", ordemId);
-		ProductionOrder ordemIniciar = productionOrderDAO.buscarPorId(ordemId);
+		ProductionOrder ordemIniciar = this.buscarPorId(ordemId);
 
 		if (ordemIniciar.getStatus() != OrderStatus.PENDENTE) {
 			logger.warn("Operação falhou. Tentativa de iniciar uma Ordem de Operação que não esteja PENDENTE.");
 			throw new BusinessRuleException("Só é possível iniciar uma ordem que está pendente.");
 		}
 		ordemIniciar.setStatus(OrderStatus.EM_ANDAMENTO);
-
-		productionOrderDAO.atualizar(ordemIniciar);
+		ProductionOrder ordemAtt = productionOrderDAO.save(ordemIniciar);
 		logger.info("Ordem de Produção ID: {} iniciada com sucesso.", ordemId);
-		return ordemIniciar;
+		return ordemAtt;
 	}
 
 	public ProductionOrder concluirOrdem(int ordemId) {
 		logger.debug("Iniando conclusão de Ordem de Produção ID: {}.", ordemId);
 
-		ProductionOrder ordemConcluir = productionOrderDAO.buscarPorId(ordemId);
+		ProductionOrder ordemConcluir = this.buscarPorId(ordemId);
 
 		if (ordemConcluir.getStatus() != OrderStatus.EM_ANDAMENTO) {
 			logger.warn("Operação falhou. Tentativa de concluir uma Ordem de Operação que não esteja EM_ANDAMENTO.");
@@ -114,15 +131,14 @@ public class ProductionOrderService implements Reportable {
 		}
 
 		ordemConcluir.setStatus(OrderStatus.CONCLUIDA);
-
-		productionOrderDAO.atualizar(ordemConcluir);
+		ProductionOrder ordemAtt = productionOrderDAO.save(ordemConcluir);
 		logger.info("Ordem de Produção concluída com sucesso ID: {}.", ordemId);
-		return ordemConcluir;
+		return ordemAtt;
 	}
 
 	public ProductionOrder cancelarOrdem(int ordemId) {
 		logger.debug("Inicando cancelamento de Ordem de Produção ID: {}", ordemId);
-		ProductionOrder ordemCancelar = productionOrderDAO.buscarPorId(ordemId);
+		ProductionOrder ordemCancelar = this.buscarPorId(ordemId);
 
 		if (ordemCancelar.getStatus() != OrderStatus.PENDENTE) {
 			logger.warn("Operação falhou. Tentativa de cancelar uma Ordem de Produção que não esteja PENDENTE.");
@@ -130,15 +146,14 @@ public class ProductionOrderService implements Reportable {
 		}
 
 		ordemCancelar.setStatus(OrderStatus.CANCELADA);
-
-		productionOrderDAO.atualizar(ordemCancelar);
+		ProductionOrder ordemAtt = productionOrderDAO.save(ordemCancelar);
 		logger.info("Ordem de Produção cancelada com sucesso ID: {}.", ordemId);
-		return ordemCancelar;
+		return ordemAtt;
 	}
 
 	public Map<String, Object> obterDadosRelatorio() {
 		logger.debug("Coletando dados puros para o relatório.");
-		List<ProductionOrder> ordensDeProducao = productionOrderDAO.listarTodas();
+		List<ProductionOrder> ordensDeProducao = productionOrderDAO.findAll();
 
 		if (ordensDeProducao.isEmpty()) {
 			logger.warn("Não há dados para relatório.");
@@ -156,14 +171,14 @@ public class ProductionOrderService implements Reportable {
 
 		Set<Machine> maquinasAtivas = ordensDeProducao.stream()
 				.filter(ordem -> ordem.getStatus() == OrderStatus.EM_ANDAMENTO)
-				.map(ordem -> ordem.getMaquinaDesignada()).collect(Collectors.toSet()); 
+				.map(ordem -> ordem.getMaquinaDesignada()).collect(Collectors.toSet());
 
 		Set<OperatorMachine> operadoresAtivos = ordensDeProducao.stream()
 				.filter(ordem -> ordem.getStatus() == OrderStatus.EM_ANDAMENTO)
 				.map(ordem -> ordem.getOperadorResponsavel()).collect(Collectors.toSet());
 
 		Map<String, Object> dadosRelatorio = new HashMap<>();
-		dadosRelatorio.put("totalOrdens", ordensDeProducao.size()); 
+		dadosRelatorio.put("totalOrdens", ordensDeProducao.size());
 		dadosRelatorio.put("statusPendente", contPendente);
 		dadosRelatorio.put("statusEmAndamento", contEmAndamento);
 		dadosRelatorio.put("volumeProducaoConcluido", volumeConcluido);
