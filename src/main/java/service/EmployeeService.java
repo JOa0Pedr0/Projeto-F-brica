@@ -53,11 +53,13 @@ public class EmployeeService implements Reportable {
 			logger.warn("Tentativa de adiconar máquina null.");
 			throw new BusinessRuleException("Máquina adicionada não existe.");
 		}
-		if (machineDAO.findAll().isEmpty()) {
-			logger.warn("Tentativa de cadastrar operador falhou: Nenhuma máquina registrada.");
-			throw new BusinessRuleException(
-					"O Operador de máquina não pode ser cadastrado sem a existência de máquinas no sistema.");
-		}
+		
+		  if (machineDAO.findAll().isEmpty()) { logger.
+		  warn("Tentativa de cadastrar operador falhou: Nenhuma máquina registrada.");
+		  throw new BusinessRuleException(
+		  "O Operador de máquina não pode ser cadastrado sem a existência de máquinas no sistema."
+		  ); }
+		
 
 		OperatorMachine operadorSalvo = employeeDAO.save(operadorMaquina);
 		logger.info("Operador de máquina adicionado com sucesso.");
