@@ -67,7 +67,7 @@ public class EmployeeController {
 	}
 
 	@PutMapping("/operador/{id}")
-	public ResponseEntity<OperatorMachine> atualizarGerente(@PathVariable int id,
+	public ResponseEntity<OperatorMachine> atualizarOperador(@PathVariable int id,
 			@RequestBody OperatorMachine operadorNovosDados) {
 		OperatorMachine operadorAtt = employeeService.atualizarOperadorDeMaquina(id, operadorNovosDados);
 
